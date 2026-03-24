@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+frankfurter:
+  api:
+    base-url: https://api.frankfurter.app
+    connect-timeout-ms: 15000
+    read-timeout-ms: 45000
+
+spread:
+  github-username: godhi06

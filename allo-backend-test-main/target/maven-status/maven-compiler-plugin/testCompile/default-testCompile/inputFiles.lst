@@ -1,0 +1,9 @@
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\IdrRateAggregatorIntegrationTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\service\FinanceDataServiceTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\controller\FinanceControllerTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\strategy\LatestIdrRatesFetcherTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\runner\DataLoaderRunnerTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\strategy\SupportedCurrenciesFetcherTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\store\InMemoryDataStoreTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\config\SpreadConfigTest.java
+C:\Users\Lenovo\OneDrive\Documents\project allobank\allo-backend-test\allo-backend-test-main\src\test\java\com\allobank\idrrate\strategy\HistoricalIdrUsdFetcherTest.java

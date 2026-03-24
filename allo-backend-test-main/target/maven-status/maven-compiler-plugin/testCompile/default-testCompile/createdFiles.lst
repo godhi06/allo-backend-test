@@ -1,0 +1,9 @@
+com\allobank\idrrate\strategy\LatestIdrRatesFetcherTest.class
+com\allobank\idrrate\runner\DataLoaderRunnerTest.class
+com\allobank\idrrate\store\InMemoryDataStoreTest.class
+com\allobank\idrrate\strategy\HistoricalIdrUsdFetcherTest.class
+com\allobank\idrrate\service\FinanceDataServiceTest.class
+com\allobank\idrrate\IdrRateAggregatorIntegrationTest.class
+com\allobank\idrrate\config\SpreadConfigTest.class
+com\allobank\idrrate\strategy\SupportedCurrenciesFetcherTest.class
+com\allobank\idrrate\controller\FinanceControllerTest.class

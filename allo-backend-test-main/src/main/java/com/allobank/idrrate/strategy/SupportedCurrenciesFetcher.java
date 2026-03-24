@@ -35,29 +35,43 @@ public class SupportedCurrenciesFetcher implements IDRDataFetcher {
 
     @Override
     public Object fetchData() {
-        log.info("Fetching supported currencies from Frankfurter API...");
-        try {
-            Map<String, String> currencies = webClient.get()
-                    .uri("/currencies")
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
-                    .block();
+        int maxRetries = 3;
+        int retryDelay = 2000;
 
-            if (currencies == null) {
-                throw new ExternalApiException("Received null response from Frankfurter API for currencies");
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                log.info("Fetching supported currencies from Frankfurter API (attempt {}/{}).", attempt, maxRetries);
+                Map<String, String> currencies = webClient.get()
+                        .uri("/currencies")
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
+                        .block();
+
+                if (currencies == null) {
+                    throw new ExternalApiException("Received null response from Frankfurter API for currencies");
+                }
+
+                log.info("✓ Successfully fetched {} supported currencies", currencies.size());
+                return currencies;
+
+            } catch (WebClientResponseException e) {
+                log.warn("Attempt {}/{} failed with HTTP {}: {}", attempt, maxRetries, e.getStatusCode(), e.getMessage());
+            } catch (ExternalApiException e) {
+                log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+            } catch (Exception e) {
+                log.warn("Attempt {}/{} failed with unexpected error: {}", attempt, maxRetries, e.getMessage());
             }
 
-            log.info("Successfully fetched {} supported currencies", currencies.size());
-            return currencies;
-
-        } catch (WebClientResponseException e) {
-            log.error("External API error when fetching currencies: {} {}", e.getStatusCode(), e.getMessage());
-            throw new ExternalApiException("Failed to fetch supported currencies: " + e.getMessage(), e);
-        } catch (ExternalApiException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Unexpected error fetching currencies: {}", e.getMessage());
-            throw new ExternalApiException("Unexpected error fetching supported currencies: " + e.getMessage(), e);
+            if (attempt < maxRetries) {
+                try {
+                    Thread.sleep(retryDelay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
         }
+
+        throw new ExternalApiException("Failed to fetch supported currencies after " + maxRetries + " attempts");
     }
 }

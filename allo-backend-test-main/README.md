@@ -27,7 +27,7 @@ A production-ready Spring Boot REST API that aggregates Indonesian Rupiah (IDR) 
 
 ```bash
 git clone https://github.com/godhi06/allo-backend-test.git
-cd allo-backend-test
+cd allo-backend-test-main
 ```
 
 ### Run Tests

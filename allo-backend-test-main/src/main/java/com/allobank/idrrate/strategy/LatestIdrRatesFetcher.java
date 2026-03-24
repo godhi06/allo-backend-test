@@ -38,47 +38,61 @@ public class LatestIdrRatesFetcher implements IDRDataFetcher {
 
     @Override
     public Object fetchData() {
-        log.info("Fetching latest IDR rates from Frankfurter API...");
-        try {
-            FrankfurterLatestResponse response = webClient.get()
-                    .uri("/latest?base=IDR")
-                    .retrieve()
-                    .bodyToMono(FrankfurterLatestResponse.class)
-                    .block();
+        int maxRetries = 3;
+        int retryDelay = 2000;
 
-            if (response == null || response.rates() == null) {
-                throw new ExternalApiException("Received null response from Frankfurter API for latest IDR rates");
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                log.info("Fetching latest IDR rates from Frankfurter API (attempt {}/{})...", attempt, maxRetries);
+
+                FrankfurterLatestResponse response = webClient.get()
+                        .uri("/latest?base=IDR")
+                        .retrieve()
+                        .bodyToMono(FrankfurterLatestResponse.class)
+                        .block();
+
+                if (response == null || response.rates() == null) {
+                    throw new ExternalApiException("Received null response from Frankfurter API for latest IDR rates");
+                }
+
+                Double rateUsd = response.rates().get("USD");
+                if (rateUsd == null) {
+                    throw new ExternalApiException("USD rate not found in latest IDR rates response");
+                }
+
+                double spreadFactor = spreadConfig.getSpreadFactor();
+                double usdBuySpreadIdr = (1.0 / rateUsd) * (1.0 + spreadFactor);
+
+                log.info("✓ Calculated USD_BuySpread_IDR: {} (spread factor: {}, username: {})",
+                        usdBuySpreadIdr, spreadFactor, spreadConfig.getGithubUsername());
+
+                return new LatestIdrRatesData(
+                        response.base(),
+                        response.date(),
+                        response.rates(),
+                        usdBuySpreadIdr,
+                        spreadFactor,
+                        spreadConfig.getGithubUsername()
+                );
+
+            } catch (WebClientResponseException e) {
+                log.warn("Attempt {}/{} failed with HTTP {}: {}", attempt, maxRetries, e.getStatusCode(), e.getMessage());
+            } catch (ExternalApiException e) {
+                log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+            } catch (Exception e) {
+                log.warn("Attempt {}/{} failed with unexpected error: {}", attempt, maxRetries, e.getMessage());
             }
 
-            Double rateUsd = response.rates().get("USD");
-            if (rateUsd == null) {
-                throw new ExternalApiException("USD rate not found in latest IDR rates response");
+            if (attempt < maxRetries) {
+                try {
+                    Thread.sleep(retryDelay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
-
-            // USD_BuySpread_IDR = (1 / Rate_USD) * (1 + Spread Factor)
-            double spreadFactor = spreadConfig.getSpreadFactor();
-            double usdBuySpreadIdr = (1.0 / rateUsd) * (1.0 + spreadFactor);
-
-            log.info("Calculated USD_BuySpread_IDR: {} (spread factor: {}, username: {})",
-                    usdBuySpreadIdr, spreadFactor, spreadConfig.getGithubUsername());
-
-            return new LatestIdrRatesData(
-                    response.base(),
-                    response.date(),
-                    response.rates(),
-                    usdBuySpreadIdr,
-                    spreadFactor,
-                    spreadConfig.getGithubUsername()
-            );
-
-        } catch (WebClientResponseException e) {
-            log.error("External API error when fetching latest IDR rates: {} {}", e.getStatusCode(), e.getMessage());
-            throw new ExternalApiException("Failed to fetch latest IDR rates: " + e.getMessage(), e);
-        } catch (ExternalApiException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Unexpected error fetching latest IDR rates: {}", e.getMessage());
-            throw new ExternalApiException("Unexpected error fetching latest IDR rates: " + e.getMessage(), e);
         }
+
+        throw new ExternalApiException("Failed to fetch latest IDR rates after " + maxRetries + " attempts");
     }
 }

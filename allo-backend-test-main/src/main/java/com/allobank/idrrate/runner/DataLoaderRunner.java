@@ -36,20 +36,25 @@ public class DataLoaderRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         log.info("=== Starting data ingestion from Frankfurter API ===");
 
+        int successCount = 0;
+        int failureCount = 0;
+
         for (IDRDataFetcher fetcher : fetchers) {
             try {
                 log.info("Fetching resource: {}", fetcher.getResourceType());
                 Object data = fetcher.fetchData();
                 dataStore.put(fetcher.getResourceType(), data);
                 log.info("Successfully loaded resource: {}", fetcher.getResourceType());
+                successCount++;
             } catch (Exception e) {
-                log.error("Failed to fetch resource '{}': {}", fetcher.getResourceType(), e.getMessage(), e);
-                throw new RuntimeException(
-                        "Critical failure during startup data load for resource: " + fetcher.getResourceType(), e);
+                log.warn("⚠️  Failed to fetch resource '{}': {}. Application will continue with cached/empty data.", 
+                        fetcher.getResourceType(), e.getMessage());
+                failureCount++;
             }
         }
 
         dataStore.seal();
-        log.info("=== Data ingestion complete. Store sealed with {} resources. ===", dataStore.size());
+        log.info("=== Data ingestion complete. {}/{} resources loaded successfully. {} failed. Store sealed. ===", 
+                successCount, fetchers.size(), failureCount);
     }
 }
