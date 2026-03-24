@@ -30,6 +30,8 @@ git clone https://github.com/godhi06/allo-backend-test.git
 cd allo-backend-test-main
 ```
 
+#commpit PR
+
 ### Run Tests
 
 ```bash
